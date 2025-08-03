@@ -74,29 +74,35 @@ The Lambda functions are automatically instrumented with:
 
 1. **Auto-Instrumentation**: OpenTelemetry NodeJS layer automatically instruments AWS SDK calls, HTTP requests, and Lambda runtime
 2. **Trace Collection**: OpenTelemetry Collector layer receives traces from the instrumentation
-3. **Trace Export**: Configure the collector to export traces to your observability backend
+3. **Trace Export**: Collector exports traces to Datadog via OTLP protocol
 4. **Distributed Tracing**: Traces span across API Gateway → Publisher Lambda → SQS → Consumer Lambda
 
 ## Monitoring
 
 - **CloudWatch Logs**: Check Lambda function logs for OpenTelemetry initialization and processing details
-- **Distributed Traces**: View end-to-end traces in your observability platform
+- **Datadog APM**: View distributed traces and service maps in Datadog's APM interface
 - **CloudWatch Metrics**: Monitor Lambda invocations, errors, and duration
 - **SQS Metrics**: Monitor queue depth and message processing rates
 
-## Configuring Trace Export
+## Datadog Configuration
 
-By default, the OpenTelemetry Collector layer exports traces to CloudWatch. To export to other systems:
+The OpenTelemetry Collector is configured to export traces directly to Datadog using the `collector.yaml` configuration:
 
-1. Configure collector environment variables to specify exporters
-2. Add necessary network access for your observability backend
-3. Set authentication credentials as needed
-
-Example environment variables for common exporters:
-```bash
-OTEL_EXPORTER_OTLP_ENDPOINT=https://your-backend.com/v1/traces
-OTEL_EXPORTER_OTLP_HEADERS=x-api-key=your-key
+```yaml
+exporters:
+  otlphttp:
+    traces_endpoint: https://trace.agent.datadoghq.com/api/v0.2/traces
+    headers:
+      dd-api-key: ${env:DD_API_KEY}
+      dd-protocol: "otlp"
+      dd-otlp-source: datadog
 ```
+
+The collector processes traces through a pipeline that includes:
+- **OTLP receivers** on ports 4317 (gRPC) and 4318 (HTTP)
+- **Batch processor** for efficient trace bundling
+- **Resource processor** to add deployment environment metadata
+- **OTLP HTTP exporter** to send traces to Datadog
 
 ## Cleanup
 
