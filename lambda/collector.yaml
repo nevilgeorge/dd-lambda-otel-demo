@@ -19,15 +19,21 @@ processors:
 exporters:
   otlphttp:
     traces_endpoint: https://trace.agent.datadoghq.com/api/v0.2/traces
+    metrics_endpoint: https://api.datadoghq.com/api/intake/otlp/v1/metrics
     headers:
       dd-api-key: ${env:DD_API_KEY}
       dd-protocol: "otlp"
+      dd-otel-metric-config: '{"resource_attributes_as_tags": true}'
       dd-otlp-source: datadog
 
 service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [batch]
+      processors: [batch, resource]
+      exporters: [otlphttp]
+    metrics:
+      receivers: [otlp]
+      processors: [batch, resource]
       exporters: [otlphttp]
   extensions: []

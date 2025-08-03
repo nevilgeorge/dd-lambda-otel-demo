@@ -24,6 +24,7 @@ export class LambdaOtelDemoStack extends cdk.Stack {
     // Datadog fields.
     const ddOtlpTracesEndpoint = 'https://trace.agent.datadoghq.com/api/v0.2/traces';
     const ddApiKey = process.env.DD_API_KEY || '';
+    const ddSource = 'datadog';
 
     // Create Publisher Lambda Function
     const publisherFunction = new lambda.Function(this, 'PublisherFunction', {
@@ -42,6 +43,10 @@ export class LambdaOtelDemoStack extends cdk.Stack {
         OTEL_SERVICE_VERSION: '1.0.0',
         OTEL_RESOURCE_ATTRIBUTES: 'service.name=nev-lambda-otel-publisher,service.version=1.0.0',
         OTEL_PROPAGATORS: 'tracecontext,baggage',
+        OTEL_EXPORTER_OTLP_METRICS_PROTOCOL: 'http/protobuf',
+        OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: 'https://api.datadoghq.com/api/intake/otlp/v1/metrics',
+        OTEL_EXPORTER_OTLP_METRICS_HEADERS: `dd-api-key=${ddApiKey},dd-otlp-source=${ddSource}`,
+        OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE: 'delta',
         OPENTELEMETRY_COLLECTOR_CONFIG_URI: '/var/task/collector.yaml',
         DD_OTLP_TRACES_ENDPOINT: ddOtlpTracesEndpoint,
         DD_API_KEY: ddApiKey,
@@ -50,6 +55,9 @@ export class LambdaOtelDemoStack extends cdk.Stack {
       },
       timeout: cdk.Duration.seconds(30)
     });
+
+
+
 
     // Create Consumer Lambda Function
     const consumerFunction = new lambda.Function(this, 'ConsumerFunction', {
@@ -67,6 +75,10 @@ export class LambdaOtelDemoStack extends cdk.Stack {
         OTEL_SERVICE_VERSION: '1.0.0',
         OTEL_RESOURCE_ATTRIBUTES: 'service.name=nev-lambda-otel-consumer,service.version=1.0.0',
         OTEL_PROPAGATORS: 'tracecontext,baggage',
+        OTEL_EXPORTER_OTLP_METRICS_PROTOCOL: 'http/protobuf',
+        OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: 'https://api.datadoghq.com/api/intake/otlp/v1/metrics',
+        OTEL_EXPORTER_OTLP_METRICS_HEADERS: `dd-api-key=${ddApiKey},dd-otlp-source=${ddSource}`,
+        OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE: 'delta',
         OPENTELEMETRY_COLLECTOR_CONFIG_URI: '/var/task/collector.yaml',
         DD_OTLP_TRACES_ENDPOINT: ddOtlpTracesEndpoint,
         DD_API_KEY: ddApiKey,
