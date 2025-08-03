@@ -45,6 +45,8 @@ export class LambdaOtelDemoStack extends cdk.Stack {
         OPENTELEMETRY_COLLECTOR_CONFIG_URI: '/var/task/collector.yaml',
         DD_OTLP_TRACES_ENDPOINT: ddOtlpTracesEndpoint,
         DD_API_KEY: ddApiKey,
+        DD_SERVICE: 'dd-otel-lambda-demo',
+        DD_ENV: 'production',
       },
       timeout: cdk.Duration.seconds(30)
     });
@@ -68,6 +70,8 @@ export class LambdaOtelDemoStack extends cdk.Stack {
         OPENTELEMETRY_COLLECTOR_CONFIG_URI: '/var/task/collector.yaml',
         DD_OTLP_TRACES_ENDPOINT: ddOtlpTracesEndpoint,
         DD_API_KEY: ddApiKey,
+        DD_SERVICE: 'dd-otel-lambda-demo',
+        DD_ENV: 'production',
       },
       timeout: cdk.Duration.seconds(30)
     });

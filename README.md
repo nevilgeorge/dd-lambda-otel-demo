@@ -1,6 +1,6 @@
 # Lambda OpenTelemetry Demo
 
-This project demonstrates AWS Lambda functions instrumented with OpenTelemetry layers for distributed tracing using the official OpenTelemetry Lambda layers.
+This project demonstrates AWS Lambda functions instrumented with OpenTelemetry layers for distributed tracing using the official [OpenTelemetry Lambda layers](https://github.com/open-telemetry/opentelemetry-lambda).
 
 ## Prerequisites
 
