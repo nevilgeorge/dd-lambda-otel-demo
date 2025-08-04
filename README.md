@@ -32,7 +32,8 @@ This project demonstrates AWS Lambda functions instrumented with OpenTelemetry l
 The stack creates:
 - **SQS Queue**: For message processing
 - **Publisher Lambda**: Receives HTTP requests and publishes messages to SQS (instrumented with OpenTelemetry)
-- **Consumer Lambda**: Processes messages from SQS (instrumented with OpenTelemetry)
+- **Consumer Lambda**: Processes messages from SQS and invokes backend function (instrumented with OpenTelemetry)
+- **Backend Lambda**: Downstream processing invoked directly by consumer Lambda (instrumented with OpenTelemetry)
 - **API Gateway**: HTTP endpoint to trigger the publisher Lambda
 - **OpenTelemetry Layers**: Two layers per Lambda function:
   - Collector Layer: Embeds OpenTelemetry Collector for trace export
@@ -51,9 +52,9 @@ The stack creates:
 
 3. **Check traces in Datadog**:
    - Go to your Datadog APM/Traces section
-   - Look for traces from `nev-lambda-otel-publisher` and `nev-lambda-otel-consumer` services
+   - Look for traces from `nev-lambda-otel-publisher`, `nev-lambda-otel-consumer`, and `nev-lambda-otel-backend` services
    - Monitor the Lambda function logs in CloudWatch for any errors
-   - Verify that messages are being processed correctly
+   - Verify that messages are being processed correctly and backend function is being invoked
 
 ## OpenTelemetry Configuration
 
@@ -72,10 +73,10 @@ The Lambda functions are automatically instrumented with:
 
 ## How It Works
 
-1. **Auto-Instrumentation**: OpenTelemetry NodeJS layer automatically instruments AWS SDK calls, HTTP requests, and Lambda runtime
+1. **Auto-Instrumentation**: OpenTelemetry NodeJS layer automatically instruments AWS SDK calls, HTTP requests, Lambda runtime, and direct Lambda invocations
 2. **Trace Collection**: OpenTelemetry Collector layer receives traces from the instrumentation
 3. **Trace Export**: Collector exports traces to Datadog via OTLP protocol
-4. **Distributed Tracing**: Traces span across API Gateway → Publisher Lambda → SQS → Consumer Lambda
+4. **Distributed Tracing**: Traces span across API Gateway → Publisher Lambda → SQS → Consumer Lambda → Backend Lambda (direct invocation)
 
 ## Monitoring
 

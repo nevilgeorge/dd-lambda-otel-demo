@@ -5,7 +5,7 @@
     "lambda-adot-demo": "bin/lambda-otel-demo.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && tsc -p lambda/tsconfig.json",
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk"

@@ -1,4 +1,7 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda';
+import { Lambda } from '@aws-sdk/client-lambda';
+
+const lambda = new Lambda({});
 
 export const handler = async (event: SQSEvent): Promise<void> => {
     for (const record of event.Records) {
@@ -22,8 +25,27 @@ const processMessage = async (record: SQSRecord): Promise<void> => {
             attributes: record.messageAttributes
         });
 
-        // Simulate some processing work
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Invoke backend function
+        const backendFunctionName = process.env.BACKEND_FUNCTION_NAME;
+        if (backendFunctionName) {
+            console.log('Invoking backend function:', backendFunctionName);
+            
+            const backendPayload = {
+                source: 'consumer',
+                originalMessage: messageBody,
+                processedAt: new Date().toISOString(),
+                messageId: record.messageId
+            };
+
+            const invokeResult = await lambda.invoke({
+                FunctionName: backendFunctionName,
+                Payload: JSON.stringify(backendPayload),
+                InvocationType: 'RequestResponse'
+            });
+
+            const backendResponse = JSON.parse(new TextDecoder().decode(invokeResult.Payload));
+            console.log('Backend function response:', backendResponse);
+        }
 
         console.log('Message processed successfully:', {
             id: messageBody.id,

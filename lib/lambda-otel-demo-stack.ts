@@ -91,8 +91,43 @@ export class LambdaOtelDemoStack extends cdk.Stack {
     // Grant permissions for publisher to send messages to SQS
     queue.grantSendMessages(publisherFunction);
 
+    // Create Backend Lambda Function
+    const backendFunction = new lambda.Function(this, 'BackendFunction', {
+      functionName: 'nev-lambda-otel-backend',
+      runtime: lambda.Runtime.NODEJS_22_X,
+      handler: 'dist/backend.handler',
+      code: lambda.Code.fromAsset('lambda'),
+      layers: [
+        lambda.LayerVersion.fromLayerVersionArn(this, 'OtelCollectorLayerBackend', otelCollectorLayerArn),
+        lambda.LayerVersion.fromLayerVersionArn(this, 'OtelNodejsLayerBackend', otelNodejsLayerArn)
+      ],
+      environment: {
+        AWS_LAMBDA_EXEC_WRAPPER: '/opt/otel-handler',
+        OTEL_SERVICE_NAME: 'nev-lambda-otel-backend',
+        OTEL_SERVICE_VERSION: '1.0.0',
+        OTEL_RESOURCE_ATTRIBUTES: 'service.name=nev-lambda-otel-backend,service.version=1.0.0',
+        OTEL_PROPAGATORS: 'tracecontext,baggage',
+        OTEL_EXPORTER_OTLP_METRICS_PROTOCOL: 'http/protobuf',
+        OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: 'https://api.datadoghq.com/api/intake/otlp/v1/metrics',
+        OTEL_EXPORTER_OTLP_METRICS_HEADERS: `dd-api-key=${ddApiKey},dd-otlp-source=${ddSource}`,
+        OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE: 'delta',
+        OPENTELEMETRY_COLLECTOR_CONFIG_URI: '/var/task/collector.yaml',
+        DD_OTLP_TRACES_ENDPOINT: ddOtlpTracesEndpoint,
+        DD_API_KEY: ddApiKey,
+        DD_SERVICE: 'dd-otel-lambda-demo',
+        DD_ENV: 'production',
+      },
+      timeout: cdk.Duration.seconds(30)
+    });
+
     // Grant permissions for consumer to receive messages from SQS
     queue.grantConsumeMessages(consumerFunction);
+
+    // Grant permissions for consumer to invoke backend function
+    backendFunction.grantInvoke(consumerFunction);
+
+    // Add backend function name as environment variable for consumer
+    consumerFunction.addEnvironment('BACKEND_FUNCTION_NAME', backendFunction.functionName);
 
     // Add SQS as event source for consumer Lambda
     consumerFunction.addEventSource(new lambdaEventSources.SqsEventSource(queue, {
