@@ -29,6 +29,73 @@ This project demonstrates AWS Lambda functions instrumented with OpenTelemetry l
 
 ## Architecture
 
+```
+┌─────────────────┐    HTTP POST     ┌─────────────────┐
+│   API Gateway   │ ────────────────▶ │  Publisher λ    │
+│                 │                   │ (nev-lambda-    │
+└─────────────────┘                   │  otel-publisher)│
+                                      └─────────┬───────┘
+                                                │ Publish Message
+                                                ▼
+                                      ┌─────────────────┐
+                                      │   SQS Queue     │
+                                      │ (nev-lambda-    │
+                                      │  otel-sqs-queue)│
+                                      └─────────┬───────┘
+                                                │ Trigger
+                                                ▼
+                                      ┌─────────────────┐
+                                      │  Consumer λ     │
+                                      │ (nev-lambda-    │    Direct Invoke
+                                      │  otel-consumer) │ ─────────────────┐
+                                      └─────────────────┘                   │
+                                                                            ▼
+                                                                  ┌─────────────────┐
+                                                                  │   Backend λ     │
+                                                                  │ (nev-lambda-    │
+                                                                  │  otel-backend)  │
+                                                                  └─────────────────┘
+
+OpenTelemetry Data Flow:
+┌─────────────────────────────────────────────────────────────────────────────────────┐
+│                            Each Lambda Function                                     │
+│  ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐              │
+│  │ OTel NodeJS     │────▶│ OTel Collector  │────▶│   Datadog       │              │
+│  │ Auto-           │     │ (collector.yaml)│     │   Backends      │              │
+│  │ Instrumentation │     │                 │     │                 │              │
+│  └─────────────────┘     └─────────────────┘     └─────────────────┘              │
+│          │                        │                        │                      │
+│          │                        │                        ├─ Traces             │
+│     Captures:                 Processes:              ├─ Metrics            │
+│     • HTTP requests            • Batching              └─ Logs               │
+│     • AWS SDK calls           • Resource tagging                            │
+│     • Lambda runtime          • Protocol conversion                         │
+│     • Direct invocations                                                    │
+│     • Console.log calls                                                     │
+└─────────────────────────────────────────────────────────────────────────────────────┘
+
+Console.log OTLP Flow (simple-otlp-logger.ts):
+┌─────────────────┐   Monkey-Patch   ┌─────────────────┐   OTLP Export   ┌─────────────────┐
+│ console.log()   │ ────────────────▶ │ OTLPLogExporter │ ──────────────▶ │ Datadog Logs    │
+│ console.error() │                   │ Creates log     │                 │ API             │
+│ console.warn()  │                   │ records in      │                 │                 │
+│ console.info()  │                   │ OTLP format     │                 │                 │
+└─────────────────┘                   └─────────────────┘                 └─────────────────┘
+
+Datadog Endpoints:
+┌─────────────────┐    OTLP     ┌──────────────────────────────────────────────────┐
+│ OTel Collector  │ ───────────▶│  https://trace.agent.datadoghq.com/api/v0.2/    │
+│                 │             │  traces                                          │
+│                 │ ───────────▶│  https://api.datadoghq.com/api/intake/otlp/v1/  │
+│                 │             │  metrics                                         │
+└─────────────────┘             └──────────────────────────────────────────────────┘
+
+┌─────────────────┐    OTLP     ┌──────────────────────────────────────────────────┐
+│Simple OTLP      │ ───────────▶│  https://http-intake.logs.datadoghq.com/api/v2/ │
+│Logger           │             │  logs                                            │
+└─────────────────┘             └──────────────────────────────────────────────────┘
+```
+
 The stack creates:
 - **SQS Queue**: For message processing
 - **Publisher Lambda**: Receives HTTP requests and publishes messages to SQS (instrumented with OpenTelemetry)
