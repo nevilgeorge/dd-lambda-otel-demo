@@ -20,6 +20,7 @@ exporters:
   otlphttp:
     traces_endpoint: https://trace.agent.datadoghq.com/api/v0.2/traces
     metrics_endpoint: https://api.datadoghq.com/api/intake/otlp/v1/metrics
+    logs_endpoint: https://http-intake.logs.datadoghq.com/api/v2/logs
     headers:
       dd-api-key: ${env:DD_API_KEY}
       dd-protocol: "otlp"
@@ -33,6 +34,10 @@ service:
       processors: [batch, resource]
       exporters: [otlphttp]
     metrics:
+      receivers: [otlp]
+      processors: [batch, resource]
+      exporters: [otlphttp]
+    logs:
       receivers: [otlp]
       processors: [batch, resource]
       exporters: [otlphttp]
