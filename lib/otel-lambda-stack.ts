@@ -6,13 +6,13 @@ import * as lambdaEventSources from 'aws-cdk-lib/aws-lambda-event-sources';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 
-export class LambdaOtelDemoStack extends cdk.Stack {
+export class OTelLambdaStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
     // Create SQS Queue
     const queue = new sqs.Queue(this, 'EventQueue', {
-      queueName: 'nev-lambda-otel-sqs-queue',
+      queueName: 'nev-otel-lambda-sqs-queue',
       visibilityTimeout: cdk.Duration.seconds(300),
       retentionPeriod: cdk.Duration.days(14)
     });
@@ -28,7 +28,7 @@ export class LambdaOtelDemoStack extends cdk.Stack {
 
     // Create Publisher Lambda Function
     const publisherFunction = new lambda.Function(this, 'PublisherFunction', {
-      functionName: 'nev-lambda-otel-publisher',
+      functionName: 'nev-otel-lambda-publisher',
       runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'dist/publisher.handler',
       code: lambda.Code.fromAsset('lambda'),
@@ -39,9 +39,9 @@ export class LambdaOtelDemoStack extends cdk.Stack {
       environment: {
         QUEUE_URL: queue.queueUrl,
         AWS_LAMBDA_EXEC_WRAPPER: '/opt/otel-handler',
-        OTEL_SERVICE_NAME: 'nev-lambda-otel-publisher',
+        OTEL_SERVICE_NAME: 'nev-otel-lambda-publisher',
         OTEL_SERVICE_VERSION: '1.0.0',
-        OTEL_RESOURCE_ATTRIBUTES: 'service.name=nev-lambda-otel-publisher,service.version=1.0.0',
+        OTEL_RESOURCE_ATTRIBUTES: 'service.name=nev-otel-lambda-publisher,service.version=1.0.0',
         OTEL_PROPAGATORS: 'tracecontext,baggage',
         OTEL_EXPORTER_OTLP_METRICS_PROTOCOL: 'http/protobuf',
         OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: 'https://api.datadoghq.com/api/intake/otlp/v1/metrics',
@@ -50,18 +50,15 @@ export class LambdaOtelDemoStack extends cdk.Stack {
         OPENTELEMETRY_COLLECTOR_CONFIG_URI: '/var/task/collector.yaml',
         DD_OTLP_TRACES_ENDPOINT: ddOtlpTracesEndpoint,
         DD_API_KEY: ddApiKey,
-        DD_SERVICE: 'dd-otel-lambda-demo',
         DD_ENV: 'production',
       },
       timeout: cdk.Duration.seconds(30)
     });
 
 
-
-
     // Create Consumer Lambda Function
     const consumerFunction = new lambda.Function(this, 'ConsumerFunction', {
-      functionName: 'nev-lambda-otel-consumer',
+      functionName: 'nev-otel-lambda-consumer',
       runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'dist/consumer.handler',
       code: lambda.Code.fromAsset('lambda'),
@@ -71,9 +68,9 @@ export class LambdaOtelDemoStack extends cdk.Stack {
       ],
       environment: {
         AWS_LAMBDA_EXEC_WRAPPER: '/opt/otel-handler',
-        OTEL_SERVICE_NAME: 'nev-lambda-otel-consumer',
+        OTEL_SERVICE_NAME: 'nev-otel-lambda-consumer',
         OTEL_SERVICE_VERSION: '1.0.0',
-        OTEL_RESOURCE_ATTRIBUTES: 'service.name=nev-lambda-otel-consumer,service.version=1.0.0',
+        OTEL_RESOURCE_ATTRIBUTES: 'service.name=nev-otel-lambda-consumer,service.version=1.0.0',
         OTEL_PROPAGATORS: 'tracecontext,baggage',
         OTEL_EXPORTER_OTLP_METRICS_PROTOCOL: 'http/protobuf',
         OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: 'https://api.datadoghq.com/api/intake/otlp/v1/metrics',
@@ -82,7 +79,6 @@ export class LambdaOtelDemoStack extends cdk.Stack {
         OPENTELEMETRY_COLLECTOR_CONFIG_URI: '/var/task/collector.yaml',
         DD_OTLP_TRACES_ENDPOINT: ddOtlpTracesEndpoint,
         DD_API_KEY: ddApiKey,
-        DD_SERVICE: 'dd-otel-lambda-demo',
         DD_ENV: 'production',
       },
       timeout: cdk.Duration.seconds(30)
@@ -93,7 +89,7 @@ export class LambdaOtelDemoStack extends cdk.Stack {
 
     // Create Backend Lambda Function
     const backendFunction = new lambda.Function(this, 'BackendFunction', {
-      functionName: 'nev-lambda-otel-backend',
+      functionName: 'nev-otel-lambda-backend',
       runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'dist/backend.handler',
       code: lambda.Code.fromAsset('lambda'),
@@ -103,9 +99,9 @@ export class LambdaOtelDemoStack extends cdk.Stack {
       ],
       environment: {
         AWS_LAMBDA_EXEC_WRAPPER: '/opt/otel-handler',
-        OTEL_SERVICE_NAME: 'nev-lambda-otel-backend',
+        OTEL_SERVICE_NAME: 'nev-otel-lambda-backend',
         OTEL_SERVICE_VERSION: '1.0.0',
-        OTEL_RESOURCE_ATTRIBUTES: 'service.name=nev-lambda-otel-backend,service.version=1.0.0',
+        OTEL_RESOURCE_ATTRIBUTES: 'service.name=nev-otel-lambda-backend,service.version=1.0.0',
         OTEL_PROPAGATORS: 'tracecontext,baggage',
         OTEL_EXPORTER_OTLP_METRICS_PROTOCOL: 'http/protobuf',
         OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: 'https://api.datadoghq.com/api/intake/otlp/v1/metrics',
@@ -114,7 +110,6 @@ export class LambdaOtelDemoStack extends cdk.Stack {
         OPENTELEMETRY_COLLECTOR_CONFIG_URI: '/var/task/collector.yaml',
         DD_OTLP_TRACES_ENDPOINT: ddOtlpTracesEndpoint,
         DD_API_KEY: ddApiKey,
-        DD_SERVICE: 'dd-otel-lambda-demo',
         DD_ENV: 'production',
       },
       timeout: cdk.Duration.seconds(30)

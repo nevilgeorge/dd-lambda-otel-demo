@@ -74,7 +74,7 @@ OpenTelemetry Data Flow:
 │     • Console.log calls                                                     │
 └─────────────────────────────────────────────────────────────────────────────────────┘
 
-Console.log OTLP Flow (simple-otlp-logger.ts):
+Console.log OTLP Flow (removed):
 ┌─────────────────┐   Monkey-Patch   ┌─────────────────┐   OTLP Export   ┌─────────────────┐
 │ console.log()   │ ────────────────▶ │ OTLPLogExporter │ ──────────────▶ │ Datadog Logs    │
 │ console.error() │                   │ Creates log     │                 │ API             │
