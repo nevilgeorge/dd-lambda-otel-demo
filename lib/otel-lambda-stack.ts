@@ -39,7 +39,8 @@ export class OTelLambdaStack extends cdk.Stack {
       environment: {
         QUEUE_URL: queue.queueUrl,
         AWS_LAMBDA_EXEC_WRAPPER: '/opt/otel-handler',
-        OTEL_SERVICE_NAME: 'nev-otel-lambda-publisher',
+        // OTEL_SERVICE_NAME: 'nev-otel-lambda-publisher',
+        OTEL_SERVICE_NAME: 'otel-lambda-demo',
         OTEL_SERVICE_VERSION: '1.0.0',
         OTEL_RESOURCE_ATTRIBUTES: 'service.name=nev-otel-lambda-publisher,service.version=1.0.0',
         OTEL_PROPAGATORS: 'tracecontext,baggage',
@@ -68,7 +69,8 @@ export class OTelLambdaStack extends cdk.Stack {
       ],
       environment: {
         AWS_LAMBDA_EXEC_WRAPPER: '/opt/otel-handler',
-        OTEL_SERVICE_NAME: 'nev-otel-lambda-consumer',
+        // OTEL_SERVICE_NAME: 'nev-otel-lambda-consumer',
+        OTEL_SERVICE_NAME: 'otel-lambda-demo',
         OTEL_SERVICE_VERSION: '1.0.0',
         OTEL_RESOURCE_ATTRIBUTES: 'service.name=nev-otel-lambda-consumer,service.version=1.0.0',
         OTEL_PROPAGATORS: 'tracecontext,baggage',
@@ -99,7 +101,8 @@ export class OTelLambdaStack extends cdk.Stack {
       ],
       environment: {
         AWS_LAMBDA_EXEC_WRAPPER: '/opt/otel-handler',
-        OTEL_SERVICE_NAME: 'nev-otel-lambda-backend',
+        // OTEL_SERVICE_NAME: 'nev-otel-lambda-backend',
+        OTEL_SERVICE_NAME: 'otel-lambda-demo',
         OTEL_SERVICE_VERSION: '1.0.0',
         OTEL_RESOURCE_ATTRIBUTES: 'service.name=nev-otel-lambda-backend,service.version=1.0.0',
         OTEL_PROPAGATORS: 'tracecontext,baggage',
